@@ -83,15 +83,15 @@ public interface Hash_Map<KeyType, ValueType>
 	 * 
 	 * This function should print out a message such as:
 	 * 
-	 * ------- Hash Table Info -------
-	 * Average collisions:         0.418   // number of incorrect buckets "looked at" vs (number of inserts + finds)
+	 * ------- Hash Table Info ---------
+	 * Average Collisions:         0.418   // number of incorrect buckets "looked at" vs (number of inserts + finds)
 	 * Average Hash Function Time:  1421   // in nanoseconds
 	 * Average Insertion Time:      6534   
 	 * Average Find Time:           6534   
 	 * Size of Table:                949
 	 * Capacity of Table :          2019
 	 * Percent filled :             47.0 % 
-	 * -----------------------------------------
+	 * ---------------------------------
 	 * 
 	 * (Note: use toString!)
 	 * 

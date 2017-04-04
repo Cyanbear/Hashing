@@ -12,7 +12,6 @@ import static hash_tables.Primes.next_prime;
  *         Linear probing is used to handle conflicts.
  * 
  * 
- *         FIXME: You are to comment all functions and variables
  */
 public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<KeyType, ValueType>
 {
@@ -24,9 +23,12 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	protected boolean                           doubling;       /** whether the table is doubled or not */
 	
 	// A list of statistics
-	private int									collisionCount; 
-	private double								functionTime;
-	private double								insertionTime;						
+	private int									insertionCount;
+	private int									collisionCount;
+	private int									findCount;
+	private long								functionTime;
+	private long								insertionTime;
+	private long								findTime;
 
 	/**
 	 * Hash Table Constructor
@@ -42,6 +44,40 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	}
 
 	/**
+	 * @return the next index in a probe
+	 */
+	private int nextProbeIndex(int index)
+	{
+		return (index + 1) % capacity;
+	}
+	
+	/**
+	 * Continuously probes the table until it finds a valid spot, then returns the index.
+	 * 
+	 * @param index - index to start at
+	 * @param key   - key to check with
+	 * @return index of a valid spot
+	 */
+	private int probe(int index, KeyType key)
+	{
+		int probeCount = 0;
+		int currentIndex = index;
+		
+		while (probeCount < capacity)
+		{
+			probeCount++;
+			collisionCount++;
+			currentIndex = nextProbeIndex(currentIndex);
+			
+			Pair<KeyType, ValueType> pair = table.get(currentIndex);
+			
+			if (pair == null || pair.key.equals(key)) return currentIndex; // Found a spot
+		}
+		
+		return -1; // Nothing found;
+	}
+	
+	/**
 	 * Puts the given "value" into the hash table under the given "key".
 	 * On a duplicate entry, replace the old data with the new "value".
 	 * 
@@ -51,11 +87,41 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 *                      is greater than 5.
 	 *           *double --> double then choose next greatest prime 
 	 * 
-	 * FIXME: Make sure you collect statistics in this method. See print_stats().
 	 */
 	public void insert( KeyType key, ValueType value )
 	{
+		double startTime = System.nanoTime(); // Used for timing
 		
+		// Check for resize
+		if (num_of_entries > 0.5 * capacity && resizeable)
+		{
+			if (doubling) resize(capacity * 2);
+			else 	      resize(capacity + 1);
+		}
+		
+		// Insert key/value
+		int index = key.hashCode() % capacity;
+		functionTime += (System.nanoTime() - startTime);
+			
+		Pair<KeyType, ValueType> pair = table.get(index);
+		if (pair != null) 
+		{	
+			if (pair.key.equals(key)) table.get(index).value = value;
+			else // Collision found
+			{
+				int probeIndex = probe(index, key);
+				
+				if (probeIndex != -1)
+					table.set(probeIndex, new Pair<KeyType, ValueType>(key, value));
+			}
+		} else 
+		{
+			num_of_entries++;
+			table.set(index, new Pair<KeyType, ValueType>(key, value));
+		}
+		
+		insertionCount++;
+		insertionTime += (System.nanoTime() - startTime);
 	}
 	
 	/**
@@ -63,22 +129,40 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * 
 	 * @param on - turns doubling on (the default value for a hash table should be on)
 	 */
-	public void doubling_behavior(boolean on)
-	{
-		// FIXME: 
-	}
+	public void doubling_behavior(boolean on) { this.doubling = on; }
 
 	/**
 	 * Search for an item in the hash table, using the given "key".
 	 * Return the item if it exists in the hash table.
 	 * Otherwise, returns null.
 	 * 
-	 * FIXME: Make sure you collect statistics in this method. See print_stats().
 	 */
 	public ValueType find( KeyType key )
 	{
-		// FIXME
-		return null;
+		double startTime = System.nanoTime(); // Used for timing
+		
+		int index = key.hashCode() % capacity;
+		functionTime += (System.nanoTime() - startTime);
+		
+		// Index the table
+		Pair<KeyType, ValueType> pair = table.get(index);
+		ValueType returnValue = null;
+
+		if (pair != null) 
+		{
+			if (pair.key.equals(key)) returnValue = pair.value;
+			else // Collision found
+			{
+				int probeIndex = probe(index, key);
+				
+				if (probeIndex != -1) returnValue = table.get(probeIndex).value;
+			}
+		}
+		
+		findCount++;
+		findTime += (System.nanoTime() - startTime);
+		
+		return returnValue;
 	}
 
 	/**
@@ -94,20 +178,12 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	/**
 	 * Returns the capacity of the hash table.
 	 */
-	public int capacity()
-	{
-		// FIXME: return the number of total buckets
-		return 0;
-	}
+	public int capacity() { return capacity; }
 
 	/**
 	 * Returns the number of entries in the hash table (i.e., the number of stored key-value pairs).
 	 */
-	public int size()
-	{
-		// FIXME: return the number of filled buckets
-		return 0;
-	}
+	public int size() { return num_of_entries; }
 
 
 	/**
@@ -115,8 +191,13 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public ArrayList<Double> print_stats()
 	{
-		// FIXME: insert code
-		return null;
+		ArrayList<Double> stats = new ArrayList<>();
+		
+		stats.add(collisionCount / (double)(insertionCount + findCount));
+		stats.add((double) num_of_entries);
+		stats.add((double) capacity);
+		
+		return stats;
 	}
 
 	/**
@@ -125,9 +206,16 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	public String toString()
 	{
 		String result = new String();
+		ArrayList<Double> stats = print_stats();
+		
 		result = "------------ Hash Table Info ------------\n"
-					+ "  Average collisions: " + "  Average Hash Function Time: " + "  Average Insertion Time: "
-					+ "  Average Find Time: " + "  Percent filled : " + "  Size of Table  : " + "  Elements       : "
+					+ "  Average collisions: "  	   + stats.get(0)
+					+ "  Average Hash Function Time: " + functionTime / (findCount + insertionCount)
+					+ "  Average Insertion Time: " 	   + insertionTime / insertionCount
+					+ "  Average Find Time: "          + findTime / findCount
+					+ "  Percent filled: " 			   + num_of_entries / (double) capacity + "%"
+					+ "  Size of Table: " 			   + capacity
+					+ "  Elements: "                   + num_of_entries
 					+ "-----------------------------------------\n";
 
 		return result;
@@ -140,20 +228,23 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public void reset_stats()
 	{
-		// FIXME: insert code
+		insertionCount = 0;
+		collisionCount = 0;
+		findCount 	   = 0;
+		functionTime   = 0;
+		insertionTime  = 0;
+		findTime 	   = 0;
 	}
 
 	/**
 	 * Clear the hash table array and initializes all of the entries in the table to null.
-	 * 
-	 * 
 	 */
 	private void init_table()
 	{
-		table = new ArrayList<Pair<KeyType, ValueType>>();
-		
+		table = new ArrayList<Pair<KeyType, ValueType>>(capacity);
+				
 		for (int index = 0; index < capacity; index++)
-			table.set(index, null);
+			table.add(null);
 		
 		num_of_entries = 0;
 	}
@@ -163,10 +254,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * 
 	 * @param status - value to use
 	 */
-	public void set_resize_allowable( boolean status )
-	{
-		this.resizeable = true;
-	}
+	public void set_resize_allowable( boolean status ) { this.resizeable = true; }
 	
 	/**
 	 * Expand the hash table to the new size, IF the new_size is GREATER than the current size
@@ -182,11 +270,21 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	{
 		if (new_size > capacity)
 		{
-			
+			table.ensureCapacity(Primes.next_prime(new_size));
+			reset_stats();
 		}
 	}
 	
-	
-
-
+	public static void main(String[] args)
+	{
+		Hash_Map<String, String> table = new Hash_Table_Linear_Probing<>(100);
+		
+		for (int i = 0; i < 1000; i++)
+			table.insert("" + (char)(i % 10) + (char)(i % 20), "x");
+		
+		for (int i = 0; i < 1000; i++)
+			table.find("" + (char)(i % 10) + (char)(i % 20));
+				
+		System.out.println(table);
+	}
 }
