@@ -21,10 +21,8 @@ public class Primes
 		if (value % 2 == 0) 
 			return (value == 2);
 		
-		int root = (int)Math.sqrt(value);
-		
-		for (int val = 3; val < root + 1; value+= 2)
-			if (value % val == 0)
+		for (int factor = 3; factor*factor <= value ; factor += 2)
+			if (value % factor == 0)
 				return false;
 		
 		return true;
