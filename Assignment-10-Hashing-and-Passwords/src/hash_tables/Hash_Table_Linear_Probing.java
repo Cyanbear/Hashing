@@ -21,6 +21,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	protected int								capacity;		/** how many objects can be stored in the table */
 	protected int								num_of_entries; /** the current number of entries */
 	protected boolean							resizeable;     /** whether the table can be resized or not */
+	protected boolean                           doubling;       /** whether the table is doubled or not */
 	
 	// A list of statistics
 	// TODO: add statistics
@@ -35,6 +36,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		init_table();
 		this.num_of_entries = 0;
 		this.resizeable = true;
+		this.doubling = true;
 	}
 
 	/**

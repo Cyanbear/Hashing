@@ -16,9 +16,20 @@ public class Primes
 	 */
 	public static boolean is_prime( int value )
 	{
-		// FIXME: 
+		if (value < 2) 
+			return false;
+		if (value % 2 == 0) 
+			return (value == 2);
+		
+		int root = (int)Math.sqrt(value);
+		
+		for (int val = 3; val < root + 1; value+= 2)
+			if (value % val == 0)
+				return false;
+		
 		return true;
 	}
+	
 
 	/**
 	 * next_prime
@@ -31,9 +42,10 @@ public class Primes
 	 */
 	public static int next_prime( int value )
 	{
-		// FIXME: 
-
-		return value;
+		if (is_prime(value))
+			return value;
+		else
+			return next_prime(value + 1);
 	}
 
 

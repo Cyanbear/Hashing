@@ -3,6 +3,8 @@ package cracking;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -12,6 +14,33 @@ import java.util.concurrent.TimeUnit;
 
 public class Crack 
 {
+	/**
+	 * @param string - string to use
+	 * @return MD5 hash of the string
+	 */
+	static public String stringToMD5Hash(String string)
+	{
+		MessageDigest hash_generator;
+		try {
+			hash_generator = java.security.MessageDigest.getInstance("MD5");
+
+			hash_generator.update(string.getBytes());
+			byte[] digest = hash_generator.digest();
+
+			StringBuffer hashword_hex_code = new StringBuffer();
+			for (byte b : digest)
+			{
+		 	   hashword_hex_code.append(String.format("%02x", b & 0xff));
+			}
+			
+			return hashword_hex_code.toString();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * @param file_name - file to read
 	 * @return an array containing each string
@@ -86,12 +115,16 @@ public class Crack
                             Collection<String> hashes, ArrayList<String> successes, StringBuilder so_far,
                             int depth, int max_length )
     {
-    	if (hashes.contains(so_far.hashCode()))
-			successes.add(so_far.toString() + " : " + so_far.hashCode());
+	
+    	if (hashes.contains(stringToMD5Hash(so_far.toString())))
+			successes.add(so_far.toString() + " : " + stringToMD5Hash(so_far.toString()));
     	
     	if (depth < max_length)
 	    	for (int value = (int) 'a'; value <= (int) 'z'; value++)
-	    		brute_force_attack(hashes, successes, so_far.append(value), depth + 1, max_length);
+	    		brute_force_attack(hashes, successes, so_far.append((char) value), depth + 1, max_length);
+    	    	
+    	if (depth != 0)
+    		so_far.deleteCharAt(depth - 1);    	    	
     }
 
     /**
@@ -177,7 +210,16 @@ public class Crack
             long total_time = System.nanoTime() - start_time;
             System.out.println("done: ( " + (total_time / 1000000000.0) + " seconds )");
 
-            return null;
+            return successes;
 
+    }
+    
+    public static void main(String[] args)
+    {
+    	HashSet<String> hashes = read_file_into_hash_set("Resources\\a_few_hashes");
+    	
+    	ArrayList<ArrayList<String>> pass = multi_thread_brute_force_attack(5, hashes);
+
+    	System.out.println(pass);
     }
 }
