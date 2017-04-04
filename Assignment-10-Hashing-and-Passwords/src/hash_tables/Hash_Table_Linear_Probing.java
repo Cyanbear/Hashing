@@ -83,6 +83,8 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public void insert( KeyType key, ValueType value )
 	{		
+		if (num_of_entries == capacity) return;
+		
 		double startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize

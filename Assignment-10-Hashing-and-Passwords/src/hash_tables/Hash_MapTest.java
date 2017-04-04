@@ -2,6 +2,8 @@ package hash_tables;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,8 +14,9 @@ public class Hash_MapTest {
 
 	@Before
 	public void before() {
-		testTable.clear();
-	}
+		testTable = new Hash_Table_Linear_Probing<>(100);
+		testTable1 = new Hash_Table_Linear_Probing<>(100);
+	}	
 
 	@Test
 	public void insert_test()
@@ -124,10 +127,10 @@ public class Hash_MapTest {
 	
 	{
 		for(int i = 0 ;i<102;i++){
-			testTable1.insert(100-i, i);
+			testTable1.insert(102 - i, i);
 		}
 		
-		assertEquals(101, testTable1.capacity());
+		assertEquals(211, testTable1.capacity());
 
 	}
 	@Test
@@ -138,8 +141,20 @@ public class Hash_MapTest {
 			testTable1.insert(200-i, i);
 		}
 		
-		assertEquals(100, testTable1.size());
+		assertEquals(200, testTable1.size());
 
+	}
+	@Test
+	public void size_test5()
+	
+	{
+		testTable1.set_resize_allowable(false);
+		
+		for(int i = 0 ;i<103;i++){
+			testTable1.insert(103-i, i);
+		}		
+		
+		assertEquals(101, testTable1.size());
 	}
 	@Test
 	public void resize_test()
@@ -164,8 +179,79 @@ public class Hash_MapTest {
 		testTable.insert("d", 4);
 		testTable.resize(200);
 
-		assertEquals(201, testTable.capacity());
+		assertEquals(211, testTable.capacity());
 
+	}
+	@Test
+	public void test_collisions()
+	{
+		testTable.insert("a", 1);
+		testTable.insert("a", 2);
+		ArrayList<Double> stats = testTable.print_stats();
+
+		assertTrue(0.5 == stats.get(0));
+	}
+	@Test
+	public void test_collisions1()
+	{
+		for(int i = 201 ;i >= 0;i--)
+			testTable1.insert(i, i);
+			
+		ArrayList<Double> stats = testTable1.print_stats();
+		
+		assertTrue(202.0 == stats.get(1) && 431.0 == stats.get(2));
+	}
+	@Test
+	public void test_collisions2()
+	{
+		testTable1 = new Hash_Table_Linear_Probing<>(5);
+		testTable1.set_resize_allowable(false);
+		
+		testTable1.insert(0, 1);
+		testTable1.insert(1, 1);
+		testTable1.insert(2, 1);
+		testTable1.insert(3, 1);
+		testTable1.insert(5, 1);
+		
+		ArrayList<Double> stats = testTable1.print_stats();
+
+		assertTrue(4.0 / 5.0 == stats.get(0));
+	}
+	@Test
+	public void test_collisions3()
+	{
+		testTable1 = new Hash_Table_Linear_Probing<>(11);
+		testTable1.set_resize_allowable(false);
+		
+		testTable1.insert(0, 1);
+		testTable1.insert(1, 1);
+		testTable1.insert(2, 1);
+		testTable1.insert(3, 1);
+		testTable1.insert(4, 1);
+		testTable1.insert(5, 1);
+		testTable1.insert(13, 1);
+		
+		ArrayList<Double> stats = testTable1.print_stats();
+
+		assertTrue(4.0 / 7.0 == stats.get(0));
+	}
+	@Test
+	public void test_collisions4()
+	{
+		testTable1 = new Hash_Table_Linear_Probing<>(11);
+		testTable1.set_resize_allowable(false);
+		
+		testTable1.insert(0, 1);
+		testTable1.insert(1, 1);
+		testTable1.insert(2, 1);
+		testTable1.insert(3, 1);
+		testTable1.insert(4, 1);
+		testTable1.insert(5, 1);
+		testTable1.insert(13, 1);
+		
+		ArrayList<Double> stats = testTable1.print_stats();
+
+		assertTrue(4.0 / 7.0 == stats.get(0));
 	}
 
 }
