@@ -24,7 +24,9 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	protected boolean                           doubling;       /** whether the table is doubled or not */
 	
 	// A list of statistics
-	// TODO: add statistics
+	private int									collisionCount; 
+	private double								functionTime;
+	private double								insertionTime;						
 
 	/**
 	 * Hash Table Constructor
@@ -53,7 +55,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public void insert( KeyType key, ValueType value )
 	{
-		//FIXME
+		
 	}
 	
 	/**

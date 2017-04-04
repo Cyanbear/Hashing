@@ -42,6 +42,28 @@ public class Crack
 	}
 	
 	/**
+	 * Reads a file into a Collection of Strings.
+	 * 
+	 * @param file_name  - file to read
+	 * @param collection - collection to insert into
+	 */
+	static public void read_file_into_collection(String file_name, Collection<String> collection)
+	{
+    	try
+    	{
+    		BufferedReader reader = new BufferedReader(new FileReader(file_name));
+    		
+    		while(reader.ready())
+    			collection.add(reader.readLine());
+    		    		
+    		reader.close();
+    	} catch(IOException error)
+    	{
+    		error.printStackTrace();
+    	}
+	}
+	
+	/**
 	 * @param file_name - file to read
 	 * @return an array containing each string
 	 */
@@ -49,18 +71,7 @@ public class Crack
     {
     	ArrayList<String> words = new ArrayList<>();
     	
-    	try
-    	{
-    		BufferedReader reader = new BufferedReader(new FileReader(file_name));
-    		
-    		while(reader.ready())
-    			words.add(reader.readLine());
-    		    		
-    		reader.close();
-    	} catch(IOException error)
-    	{
-    		error.printStackTrace();
-    	}
+    	read_file_into_collection(file_name, words);
     	
     	return words;
     }
@@ -73,18 +84,7 @@ public class Crack
     {
     	HashSet<String> words = new HashSet<>();
     	
-    	try
-    	{
-    		BufferedReader reader = new BufferedReader(new FileReader(file_name));
-    		
-    		while(reader.ready())
-    			words.add(reader.readLine());
-    		    		
-    		reader.close();
-    	} catch(IOException error)
-    	{
-    		error.printStackTrace();
-    	}
+    	read_file_into_collection(file_name, words);
     	
     	return words;
     }
