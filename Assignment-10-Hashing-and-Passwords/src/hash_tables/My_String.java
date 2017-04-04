@@ -29,12 +29,12 @@ public class My_String implements Comparable<My_String>
    */
   public int hashCode()
   {
-	  int total = 0;
+	  double total = 0;
 	  
 	  for (int index = 0; index < value.length(); index++)
-			  total+= (int)this.value.charAt(index) * Math.pow(51, index);	 
-	  //System.out.println(total);
-      return total;
+			  total += (int)this.value.charAt(index) * Math.pow(31, index);	 
+
+      return (int) (total % Integer.MAX_VALUE);
   }
  
 

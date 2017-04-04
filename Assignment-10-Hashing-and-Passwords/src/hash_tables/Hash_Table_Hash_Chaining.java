@@ -13,6 +13,14 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		super(initial_capacity);
 	}
 
+	protected void init_table()
+	{
+		table = new ArrayList<LinkedList<Pair<KeyType, ValueType>>>(capacity);
+				
+		for (int index = 0; index < capacity; index++)
+			table.add(null);
+	}
+	
 	/**
 	 * Finds a Pair with the specific key in a chain.
 	 * 
@@ -24,6 +32,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	{
 		for (Pair<KeyType, ValueType> pair : chain)
 		{
+			hitCount++;
 			collisionCount++;
 			
 			if (pair.key.equals(key)) return pair;
@@ -40,6 +49,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		functionTime += (System.nanoTime() - startTime);
 		
 		// Index the table
+		hitCount++;
 		LinkedList<Pair<KeyType, ValueType>> chain = table.get(index);
 		ValueType returnValue = null;
 
@@ -61,13 +71,14 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		double startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize (using # of chains!)
-		if (chainCount > 0.5 * capacity && resizeable)
+		if (num_of_entries > 0.5 * capacity && resizeable)
 		{
 			if (doubling) resize(capacity * 2);
 			else 	      resize(capacity + 1);
 		}
 		
 		// Insert key/value
+		hitCount++;
 		int index = key.hashCode() % capacity;
 		functionTime += (System.nanoTime() - startTime);
 			
@@ -95,6 +106,21 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		insertionTime += (System.nanoTime() - startTime);
 	}
 	
+	public void resize( int new_size )
+	{
+		if (new_size > capacity)
+		{
+			new_size = Primes.next_prime(new_size);
+			table.ensureCapacity(new_size);
+			
+			for (int index = capacity; index < new_size; index++)
+				table.add(null);
+			
+			capacity = new_size;
+			reset_stats();
+		}
+	}
+	
 	public void clear()
 	{
 		super.clear();
@@ -108,24 +134,24 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	public String toString()
 	{
 		String result = new String();
-		ArrayList<Double> stats = print_stats();
 		
 		// Calculate stats
 		Long   avgHashTime 	    = (findCount == 0 && insertionCount == 0) ? 0 : functionTime / (findCount + insertionCount);
 		Long   avgInsertionTime = (insertionCount == 0) ? 0 : insertionTime / insertionCount;
 		Long   avgFindTime 	    = (findCount == 0) ? 0 : findTime / findCount;
 		Double percentFilled    = Math.round(10000.0 * chainCount / capacity) / 100.0;
-		Double avgChainLength   = Math.round(10000.0 * num_of_entries / chainCount) / 100.0;
+		Double avgChainLength   = Math.round(100.0 * num_of_entries / chainCount) / 100.0;
+		Double avgCollisions    = Math.round(100.0 * collisionCount / (insertionCount + findCount)) / 100.0;
 
 		
 		result = "------------ Hash Table Info ------------\n"
-					+ "  Average collisions: "  	   + stats.get(0)								 + "\n"
+					+ "  Average Collisions: "  	   + avgCollisions								 + "\n"
 					+ "  Average Hash Function Time: " + avgHashTime   								 + "\n"
 					+ "  Average Insertion Time: " 	   + avgInsertionTime				             + "\n"
 					+ "  Average Find Time: "          + avgFindTime								 + "\n"
 					+ "  Average Chain Length: "       + avgChainLength  							 + "\n"
-					+ "  Number of Elements: " 		   + stats.get(1)							 	 + "\n"
-					+ "  Capacity of Table: "          + stats.get(2) 	                             + "\n"
+					+ "  Number of Elements: " 		   + num_of_entries							 	 + "\n"
+					+ "  Capacity of Table: "          + capacity		                             + "\n"
 					+ "  Percent filled: " 			   + percentFilled + "%"     					 + "\n"
 					+ "-----------------------------------------\n";
 

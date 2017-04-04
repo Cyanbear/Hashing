@@ -21,6 +21,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	protected boolean                           	doubling;       /** whether the table is doubled or not */
 	
 	// A list of statistics
+	protected int									hitCount;     
 	protected int									insertionCount;
 	protected int									collisionCount;
 	protected int									findCount;
@@ -56,17 +57,19 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * @param key   - key to check with
 	 * @return index of a valid spot
 	 */
-	private int probe(int index, KeyType key)
+	private int probe(int index, KeyType key, boolean isInsert)
 	{				
 		int localCollisionCount = 1;
 		while (true)
 		{
+			hitCount++;
 			collisionCount++;
 			
 			int probedIndex = nextProbeIndex(index, localCollisionCount++);
 			Pair<KeyType, ValueType> pair = table.get(probedIndex);
 			
-			if (pair == null || pair.key.equals(key)) return probedIndex; // Found a spot
+			if (isInsert && pair == null) return probedIndex; // Found a spot
+			else if (!isInsert && pair != null && pair.key.equals(key)) return probedIndex;
 		}
 	}
 	
@@ -95,6 +98,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		}
 		
 		// Insert key/value
+		hitCount++;
 		int index = key.hashCode() % capacity;
 		functionTime += (System.nanoTime() - startTime);
 			
@@ -108,7 +112,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			}
 			else // Collision found
 			{
-				int probeIndex = probe(index, key);
+				int probeIndex = probe(index, key, true);
 				Pair<KeyType, ValueType> probedPair = table.get(probeIndex);
 				
 				if (probedPair != null) probedPair.value = value;
@@ -149,13 +153,14 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		functionTime += (System.nanoTime() - startTime);
 		
 		// Index the table
+		hitCount++;
 		Pair<KeyType, ValueType> pair = table.get(index);
 		ValueType returnValue = null;
 
 		if (pair != null) 
 		{
 			if (pair.key.equals(key)) returnValue = pair.value;
-			else returnValue = table.get(probe(index, key)).value; // Collision found
+			else returnValue = table.get(probe(index, key, false)).value; // Collision found
 		}
 		
 		findCount++;
@@ -190,9 +195,11 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public ArrayList<Double> print_stats()
 	{
+		System.out.println(this);
+		
 		ArrayList<Double> stats = new ArrayList<>();
 		
-		stats.add(collisionCount / (double)(insertionCount + findCount));
+		stats.add(hitCount / (double)(insertionCount + findCount));
 		stats.add((double) num_of_entries);
 		stats.add((double) capacity);
 		
@@ -205,22 +212,22 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	public String toString()
 	{
 		String result = new String();
-		ArrayList<Double> stats = print_stats();
 		
 		// Calculate stats
 		Long   avgHashTime 	    = (findCount == 0 && insertionCount == 0) ? 0 : functionTime / (findCount + insertionCount);
 		Long   avgInsertionTime = (insertionCount == 0) ? 0 : insertionTime / insertionCount;
 		Long   avgFindTime 	    = (findCount == 0) ? 0 : findTime / findCount;
+		Double avgCollisions    = Math.round(100.0 * collisionCount / (insertionCount + findCount)) / 100.0;
 		Double percentFilled    = Math.round(10000.0 * num_of_entries / capacity) / 100.0;
 
 		
 		result = "------------ Hash Table Info ------------\n"
-					+ "  Average collisions: "  	   + stats.get(0)								 + "\n"
+					+ "  Average Collisions: "  	   + avgCollisions								 + "\n"
 					+ "  Average Hash Function Time: " + avgHashTime   								 + "\n"
 					+ "  Average Insertion Time: " 	   + avgInsertionTime				             + "\n"
 					+ "  Average Find Time: "          + avgFindTime								 + "\n"
-					+ "  Number of Elements: " 		   + stats.get(1)							 	 + "\n"
-					+ "  Capacity of Table: "          + stats.get(2) 	                             + "\n"
+					+ "  Number of Elements: " 		   + num_of_entries							 	 + "\n"
+					+ "  Capacity of Table: "          + capacity	 	                             + "\n"
 					+ "  Percent filled: " 			   + percentFilled + "%"     					 + "\n"
 					+ "-----------------------------------------\n";
 
@@ -234,6 +241,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public void reset_stats()
 	{
+		hitCount       = 0;
 		insertionCount = 0;
 		collisionCount = 0;
 		findCount 	   = 0;
@@ -245,7 +253,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	/**
 	 * Clear the hash table array and initializes all of the entries in the table to null.
 	 */
-	private void init_table()
+	protected void init_table()
 	{
 		table = new ArrayList<Pair<KeyType, ValueType>>(capacity);
 				

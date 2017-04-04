@@ -9,6 +9,6 @@ public class Hash_Table_Quadratic_Probing<KeyType, ValueType> extends Hash_Table
 	
 	protected int nextProbeIndex(int index, int count)
 	{
-		return (index + (count * count)) % capacity;
+		return Math.abs((index + (count * count))) % capacity;
 	}
 }
