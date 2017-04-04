@@ -2,8 +2,6 @@ package hash_tables;
 
 import java.util.ArrayList;
 
-import static hash_tables.Primes.next_prime;
-
 /**
  * @author H. James de St. Germain, April 2007
  *         # Adapted by Erin Parker to accept generic items for keys and values
@@ -36,7 +34,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public Hash_Table_Linear_Probing( int initial_capacity )
 	{
-		this.capacity = next_prime(initial_capacity);
+		this.capacity = Primes.next_prime(initial_capacity);
 		init_table();
 		this.num_of_entries = 0;
 		this.resizeable = true;
@@ -59,9 +57,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * @return index of a valid spot
 	 */
 	private int probe(int index, KeyType key)
-	{
-		if (num_of_entries == capacity) return 0; // TODO: add exception
-				
+	{				
 		int localCollisionCount = 1;
 		while (true)
 		{
@@ -86,7 +82,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * 
 	 */
 	public void insert( KeyType key, ValueType value )
-	{
+	{		
 		double startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize
@@ -209,14 +205,21 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		String result = new String();
 		ArrayList<Double> stats = print_stats();
 		
+		// Calculate stats
+		Long   avgHashTime 	    = (findCount == 0 && insertionCount == 0) ? 0 : functionTime / (findCount + insertionCount);
+		Long   avgInsertionTime = (insertionCount == 0) ? 0 : insertionTime / insertionCount;
+		Long   avgFindTime 	    = (findCount == 0) ? 0 : findTime / findCount;
+		Double percentFilled    = Math.round(10000.0 * num_of_entries / capacity) / 100.0;
+
+		
 		result = "------------ Hash Table Info ------------\n"
 					+ "  Average collisions: "  	   + stats.get(0)								 + "\n"
-					+ "  Average Hash Function Time: " + functionTime / (findCount + insertionCount) + "\n"
-					+ "  Average Insertion Time: " 	   + insertionTime / insertionCount              + "\n"
-					+ "  Average Find Time: "          + findTime / findCount						 + "\n"
-					+ "  Percent filled: " 			   + 100.0 * num_of_entries / capacity + "%"     + "\n"
-					+ "  Size of Table: " 			   + capacity									 + "\n"
-					+ "  Elements: "                   + num_of_entries                              + "\n"
+					+ "  Average Hash Function Time: " + avgHashTime   								 + "\n"
+					+ "  Average Insertion Time: " 	   + avgInsertionTime				             + "\n"
+					+ "  Average Find Time: "          + avgFindTime								 + "\n"
+					+ "  Number of Elements: " 		   + stats.get(1)							 	 + "\n"
+					+ "  Capacity of Table: "          + stats.get(2) 	                             + "\n"
+					+ "  Percent filled: " 			   + percentFilled + "%"     					 + "\n"
 					+ "-----------------------------------------\n";
 
 		return result;
