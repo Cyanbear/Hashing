@@ -16,19 +16,19 @@ import static hash_tables.Primes.next_prime;
 public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<KeyType, ValueType>
 {
 
-	private ArrayList<Pair<KeyType, ValueType>>	table;			/** stores the objects and their key values */
-	protected int								capacity;		/** how many objects can be stored in the table */
-	protected int								num_of_entries; /** the current number of entries */
-	protected boolean							resizeable;     /** whether the table can be resized or not */
-	protected boolean                           doubling;       /** whether the table is doubled or not */
+	protected ArrayList<Pair<KeyType, ValueType>>	table;			/** stores the objects and their key values */
+	protected int									capacity;		/** how many objects can be stored in the table */
+	protected int									num_of_entries; /** the current number of entries */
+	protected boolean								resizeable;     /** whether the table can be resized or not */
+	protected boolean                           	doubling;       /** whether the table is doubled or not */
 	
 	// A list of statistics
-	private int									insertionCount;
-	private int									collisionCount;
-	private int									findCount;
-	private long								functionTime;
-	private long								insertionTime;
-	private long								findTime;
+	protected int									insertionCount;
+	protected int									collisionCount;
+	protected int									findCount;
+	protected long									functionTime;
+	protected long									insertionTime;
+	protected long									findTime;
 
 	/**
 	 * Hash Table Constructor
@@ -46,9 +46,9 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	/**
 	 * @return the next index in a probe
 	 */
-	private int nextProbeIndex(int index)
+	protected int nextProbeIndex(int index, int count)
 	{
-		return (index + 1) % capacity;
+		return (index + count) % capacity;
 	}
 	
 	/**
@@ -60,21 +60,18 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	private int probe(int index, KeyType key)
 	{
-		int probeCount = 0;
-		int currentIndex = index;
-		
-		while (probeCount < capacity)
+		if (num_of_entries == capacity) return 0; // TODO: add exception
+				
+		int localCollisionCount = 1;
+		while (true)
 		{
-			probeCount++;
 			collisionCount++;
-			currentIndex = nextProbeIndex(currentIndex);
 			
-			Pair<KeyType, ValueType> pair = table.get(currentIndex);
+			int probedIndex = nextProbeIndex(index, localCollisionCount++);
+			Pair<KeyType, ValueType> pair = table.get(probedIndex);
 			
-			if (pair == null || pair.key.equals(key)) return currentIndex; // Found a spot
+			if (pair == null || pair.key.equals(key)) return probedIndex; // Found a spot
 		}
-		
-		return -1; // Nothing found;
 	}
 	
 	/**
@@ -110,9 +107,14 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			else // Collision found
 			{
 				int probeIndex = probe(index, key);
+				Pair<KeyType, ValueType> probedPair = table.get(probeIndex);
 				
-				if (probeIndex != -1)
+				if (probedPair != null) probedPair.value = value;
+				else
+				{
+					num_of_entries++;
 					table.set(probeIndex, new Pair<KeyType, ValueType>(key, value));
+				}
 			}
 		} else 
 		{
@@ -151,12 +153,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		if (pair != null) 
 		{
 			if (pair.key.equals(key)) returnValue = pair.value;
-			else // Collision found
-			{
-				int probeIndex = probe(index, key);
-				
-				if (probeIndex != -1) returnValue = table.get(probeIndex).value;
-			}
+			else returnValue = table.get(probe(index, key)).value; // Collision found
 		}
 		
 		findCount++;
@@ -171,8 +168,8 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	public void clear()
 	{
 		init_table();
-		this.num_of_entries = 0;
 		reset_stats();
+		num_of_entries = 0;
 	}
 
 	/**
@@ -209,13 +206,13 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		ArrayList<Double> stats = print_stats();
 		
 		result = "------------ Hash Table Info ------------\n"
-					+ "  Average collisions: "  	   + stats.get(0)
-					+ "  Average Hash Function Time: " + functionTime / (findCount + insertionCount)
-					+ "  Average Insertion Time: " 	   + insertionTime / insertionCount
-					+ "  Average Find Time: "          + findTime / findCount
-					+ "  Percent filled: " 			   + num_of_entries / (double) capacity + "%"
-					+ "  Size of Table: " 			   + capacity
-					+ "  Elements: "                   + num_of_entries
+					+ "  Average collisions: "  	   + stats.get(0)								 + "\n"
+					+ "  Average Hash Function Time: " + functionTime / (findCount + insertionCount) + "\n"
+					+ "  Average Insertion Time: " 	   + insertionTime / insertionCount              + "\n"
+					+ "  Average Find Time: "          + findTime / findCount						 + "\n"
+					+ "  Percent filled: " 			   + 100.0 * num_of_entries / capacity + "%"     + "\n"
+					+ "  Size of Table: " 			   + capacity									 + "\n"
+					+ "  Elements: "                   + num_of_entries                              + "\n"
 					+ "-----------------------------------------\n";
 
 		return result;
@@ -245,8 +242,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 				
 		for (int index = 0; index < capacity; index++)
 			table.add(null);
-		
-		num_of_entries = 0;
 	}
 
 	/**
@@ -270,7 +265,9 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	{
 		if (new_size > capacity)
 		{
-			table.ensureCapacity(Primes.next_prime(new_size));
+			new_size = Primes.next_prime(new_size);
+			table.ensureCapacity(new_size);
+			capacity = new_size;
 			reset_stats();
 		}
 	}
@@ -280,10 +277,10 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		Hash_Map<String, String> table = new Hash_Table_Linear_Probing<>(100);
 		
 		for (int i = 0; i < 1000; i++)
-			table.insert("" + (char)(i % 10) + (char)(i % 20), "x");
+			table.insert("" + (char)(i % 10 + 30) + (char)(i % 20 + 30), "x");
 		
 		for (int i = 0; i < 1000; i++)
-			table.find("" + (char)(i % 10) + (char)(i % 20));
+			table.find("" + (char)(i % 10 + 30) + (char)(i % 20 + 30));
 				
 		System.out.println(table);
 	}
