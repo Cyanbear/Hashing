@@ -90,7 +90,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		double startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize
-		if (num_of_entries > 0.5 * capacity && resizeable)
+		if (num_of_entries > capacity / 2.0 && resizeable)
 		{
 			if (doubling) resize(capacity * 2);
 			else 	      resize(capacity + 1);
@@ -103,7 +103,11 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		Pair<KeyType, ValueType> pair = table.get(index);
 		if (pair != null) 
 		{	
-			if (pair.key.equals(key)) table.get(index).value = value;
+			if (pair.key.equals(key)) 
+			{
+				collisionCount++;
+				table.get(index).value = value;
+			}
 			else // Collision found
 			{
 				int probeIndex = probe(index, key);
@@ -249,7 +253,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * 
 	 * @param status - value to use
 	 */
-	public void set_resize_allowable( boolean status ) { this.resizeable = true; }
+	public void set_resize_allowable( boolean status ) { this.resizeable = status; }
 	
 	/**
 	 * Expand the hash table to the new size, IF the new_size is GREATER than the current size
@@ -267,6 +271,10 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		{
 			new_size = Primes.next_prime(new_size);
 			table.ensureCapacity(new_size);
+			
+			for (int index = capacity; index < new_size; index++)
+				table.add(null);
+			
 			capacity = new_size;
 			reset_stats();
 		}
