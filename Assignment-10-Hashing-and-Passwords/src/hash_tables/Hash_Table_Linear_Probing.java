@@ -296,14 +296,23 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	{
 		if (new_size > capacity)
 		{
+			// Build a new table
 			new_size = Primes.next_prime(new_size);
-			table.ensureCapacity(new_size);
-			
-			for (int index = capacity; index < new_size; index++)
-				table.add(null);
-			
+			ArrayList<Pair<KeyType, ValueType>> newTable = new ArrayList<>(new_size);
+			ArrayList<Pair<KeyType, ValueType>> oldTable = table;
+						
+			for (int index = 0; index < new_size; index++)
+				newTable.add(null);
+
 			capacity = new_size;
+			
+			this.table = newTable;
+			
+			// Move the previous items to new one
 			reset_stats();
+			
+			for (Pair<KeyType, ValueType> pair : oldTable)
+				if (pair != null) insert(pair.key, pair.value);
 		}
 	}
 	

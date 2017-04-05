@@ -113,14 +113,25 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	{
 		if (new_size > capacity)
 		{
+			// Build a new table
 			new_size = Primes.next_prime(new_size);
-			table.ensureCapacity(new_size);
-			
-			for (int index = capacity; index < new_size; index++)
-				table.add(null);
-			
+			ArrayList<LinkedList<Pair<KeyType, ValueType>>> newTable = new ArrayList<>(new_size);
+			ArrayList<LinkedList<Pair<KeyType, ValueType>>> oldTable = table;
+						
+			for (int index = 0; index < new_size; index++)
+				newTable.add(null);
+
 			capacity = new_size;
+			
+			this.table = newTable;
+			
+			// Move the previous items to new one
 			reset_stats();
+			
+			for (LinkedList<Pair<KeyType, ValueType>> chain : oldTable)
+				if (chain != null)
+					for (Pair<KeyType, ValueType> pair : chain)
+						if (pair != null) insert(pair.key, pair.value);			
 		}
 	}
 	
