@@ -3,6 +3,12 @@ package hash_tables;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+/**
+ * An extension of Hash_Table_Linear_Probing that uses Chaining for collisions.
+ * 
+ * @author Jaden Simon and Yingqi Song
+ */
+
 public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Linear_Probing<KeyType, ValueType> 
 {
 	protected ArrayList<LinkedList<Pair<KeyType, ValueType>>>		table;		/** uses a chain of pairs */
@@ -70,12 +76,9 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	{
 		double startTime = System.nanoTime(); // Used for timing
 		
-		// Check for resize (using # of chains!)
+		// Check for resize
 		if (num_of_entries > 0.5 * capacity && resizeable)
-		{
-			if (doubling) resize(capacity * 2);
-			else 	      resize(capacity + 1);
-		}
+			resize(capacity * 2);
 		
 		// Insert key/value
 		hitCount++;

@@ -18,10 +18,9 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	protected int									capacity;		/** how many objects can be stored in the table */
 	protected int									num_of_entries; /** the current number of entries */
 	protected boolean								resizeable;     /** whether the table can be resized or not */
-	protected boolean                           	doubling;       /** whether the table is doubled or not */
 	
-	// A list of statistics
-	protected int									hitCount;     
+	// A list of statistics (self-explanatory)
+	protected int									hitCount;       
 	protected int									insertionCount;
 	protected int									collisionCount;
 	protected int									findCount;
@@ -39,7 +38,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		init_table();
 		this.num_of_entries = 0;
 		this.resizeable = true;
-		this.doubling = true;
 	}
 
 	/**
@@ -52,9 +50,12 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	
 	/**
 	 * Continuously probes the table until it finds a valid spot, then returns the index.
+	 * Returns -1 if no index was found.
 	 * 
-	 * @param index - index to start at
-	 * @param key   - key to check with
+	 * @param index    - index to start at
+	 * @param key      - key to check with
+	 * @param isInsert - whether this is an insert or find probe
+	 * 
 	 * @return index of a valid spot
 	 */
 	private int probe(int index, KeyType key, boolean isInsert)
@@ -68,8 +69,16 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			int probedIndex = nextProbeIndex(index, localCollisionCount++);
 			Pair<KeyType, ValueType> pair = table.get(probedIndex);
 			
-			if (isInsert && pair == null) return probedIndex; // Found a spot
-			else if (!isInsert && pair != null && pair.key.equals(key)) return probedIndex;
+			if (isInsert)
+			{
+				if (pair == null) 			  return probedIndex;
+			} else
+			{
+				if (pair == null) 			  return -1;
+				else if(pair.key.equals(key)) return probedIndex;
+			}
+			
+			if (probedIndex == index) 		  return -1;
 		}
 	}
 	
@@ -92,10 +101,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		
 		// Check for resize
 		if (num_of_entries > capacity / 2.0 && resizeable)
-		{
-			if (doubling) resize(capacity * 2);
-			else 	      resize(capacity + 1);
-		}
+			resize(capacity * 2);
 		
 		// Insert key/value
 		hitCount++;
@@ -131,13 +137,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		insertionCount++;
 		insertionTime += (System.nanoTime() - startTime);
 	}
-	
-	/**
-	 * if doubling is off, then do not change table size in insert method
-	 * 
-	 * @param on - turns doubling on (the default value for a hash table should be on)
-	 */
-	public void doubling_behavior(boolean on) { this.doubling = on; }
 
 	/**
 	 * Search for an item in the hash table, using the given "key".
@@ -160,7 +159,12 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		if (pair != null) 
 		{
 			if (pair.key.equals(key)) returnValue = pair.value;
-			else returnValue = table.get(probe(index, key, false)).value; // Collision found
+			else // Collision found 
+			{
+				int probedIndex = probe(index, key, false);
+				
+				if (probedIndex != -1) returnValue = table.get(probedIndex).value;
+			}
 		}
 		
 		findCount++;
@@ -189,6 +193,16 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public int size() { return num_of_entries; }
 
+	/**
+	 * Prints certain stats formatted for a spreadsheet.
+	 */
+	public void print_stats_spreadhseet()
+	{
+		Long   avgInsertionTime = (insertionCount == 0) ? 0 : insertionTime / insertionCount;
+		Long   avgFindTime 	    = (findCount == 0) ? 0 : findTime / findCount;
+		
+		System.out.printf("%10d\t%10d\t%10d\n", capacity, avgInsertionTime, avgFindTime);
+	}
 
 	/**
 	 * 

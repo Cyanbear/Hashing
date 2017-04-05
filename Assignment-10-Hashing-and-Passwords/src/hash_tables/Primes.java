@@ -7,8 +7,6 @@ package hash_tables;
  */
 public class Primes
 {
-	
-
 	/**
 	 * @param value
 	 *            - to check if prime

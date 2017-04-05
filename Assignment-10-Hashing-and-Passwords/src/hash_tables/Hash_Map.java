@@ -104,6 +104,19 @@ public interface Hash_Map<KeyType, ValueType>
 	 * 
 	 */
 	public ArrayList<Double> print_stats();
+	
+	/**
+	 * Prints certain stats formatted for a spreadsheet.
+	 * 
+	 * To be specific, it prints out the Capacity, the Average Insertion Time, and the
+	 * Average Find Time.
+	 */
+	public void print_stats_spreadhseet();
+	
+	/**
+	 * Resets the stats of the Hash_Map.
+	 */
+	public void reset_stats();
 
 	/**
 	 * Expand the hash table to the new size, IF the new_size is GREATER than the current size

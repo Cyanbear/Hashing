@@ -5,8 +5,21 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * Basic class to test our implementations of Hash_Map.
+ * 
+ * @author Jaden Simon and Yingqi Song
+ */
+
 public class Timing 
 {
+	/**
+	 * Reads the Names file into the Hash_Map.
+	 * 
+	 * @param hashTable - table to read into
+	 * 
+	 * @return the keys used
+	 */
 	private static ArrayList<My_String> readNamesFile(Hash_Map<My_String, Integer> hashTable)
 	{
     	try
@@ -38,55 +51,78 @@ public class Timing
     	return null;
 	}
 	
-	public static void main(String[] args)
-	{
-		Hash_Table_Linear_Probing<My_String, Integer> tableLinear;
-		Hash_Table_Quadratic_Probing<My_String, Integer> tableQuadratic;
-		Hash_Table_Hash_Chaining<My_String, Integer> tableChain;
+	/**
+	 * Runs a test using the Names file on the given Hash_Map for the given capacities.
+	 * 
+	 * @param testTable       - table to test
+	 * @param startCap        - start capacity
+	 * @param endCap          - end capacity
+	 * @param stepSize        - capacity step size
+	 * @param spreadSheetMode - enables/disables simple data printing
+	 */
+	private static void runTest(Hash_Map<My_String, Integer> testTable, int startCap, 
+								int endCap, int stepSize, boolean spreadSheetMode)
+	{	
+		if (spreadSheetMode)
+			System.out.println("Capacity\tInsertion Time\tFind Time");
 		
-		for (int cap = 1000; cap <= 5000; cap += 200)
+		for (int cap = startCap; cap <= endCap; cap += stepSize)
 		{
-			System.out.println("\nTESTING WITH CAPACITY " + cap);
-			
-			tableLinear = new Hash_Table_Linear_Probing<>(cap);
-			tableQuadratic = new Hash_Table_Quadratic_Probing<>(cap);
-			tableLinear.set_resize_allowable(false);
-			tableQuadratic.set_resize_allowable(false);
-
-			ArrayList<My_String> keys = readNamesFile(tableLinear);
-			readNamesFile(tableQuadratic);
-
-			tableLinear.print_stats();
-			tableQuadratic.print_stats();
-		
-			tableLinear.reset_stats();
-			tableQuadratic.reset_stats();
-
-			for (My_String key : keys)
+			// Initialize the table based on the parameter type.
+			if (testTable instanceof Hash_Table_Linear_Probing)
 			{
-				tableLinear.find(key);
-				tableQuadratic.find(key);
+				testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
+				testTable.set_resize_allowable(false);
+			}
+			else if (testTable instanceof Hash_Table_Quadratic_Probing)
+			{
+				testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
+				testTable.set_resize_allowable(false);
+			}
+			else if (testTable instanceof Hash_Table_Hash_Chaining)
+			{
+				testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
 			}
 			
-			tableLinear.print_stats();
-			tableQuadratic.print_stats();		
-		}
+			// Begin testing
+			ArrayList<My_String> keys = readNamesFile(testTable);
+
+			if (spreadSheetMode)
+			{
+				for (My_String key : keys)
+					testTable.find(key);
+				
+				testTable.print_stats_spreadhseet();
+			} else 
+			{
+				System.out.println("Testing capacity " + cap + "\n");
+				
+				testTable.print_stats();
+				testTable.reset_stats();
+	
+				for (My_String key : keys)
+					testTable.find(key);
+	
+				testTable.print_stats();
+			}
+		}	
+	}
+	
+	public static void main(String[] args)
+	{
+		boolean SPREAD_SHEET_MODE = true; // Outputs only the necessary data
 		
-		for (int cap = 10; cap <= 1000; cap += 10)
-		{
-			System.out.println("\nTESTING WITH CAPACITY " + cap);
-			
-			tableChain = new Hash_Table_Hash_Chaining<>(cap);
-
-			ArrayList<My_String> keys = readNamesFile(tableChain);
-
-			tableChain.print_stats();
-			tableChain.reset_stats();
-
-			for (My_String key : keys)
-				tableChain.find(key);
-
-			tableChain.print_stats();
-		}
+		// Probing tests
+	
+		System.out.println("RUNNING LINEAR TEST");
+		runTest(new Hash_Table_Linear_Probing<My_String, Integer>(0), 1000, 5000, 200, SPREAD_SHEET_MODE);
+		
+		System.out.println("RUNNING QUADRATIC TEST");
+		runTest(new Hash_Table_Quadratic_Probing<My_String, Integer>(0), 1000, 5000, 200, SPREAD_SHEET_MODE);
+		
+		// Hash_Chaining test
+		
+		System.out.println("RUNNING HASH CHAIN TEST");
+		runTest(new Hash_Table_Hash_Chaining<My_String, Integer>(0), 100, 1000, 10, SPREAD_SHEET_MODE);
 	}
 }

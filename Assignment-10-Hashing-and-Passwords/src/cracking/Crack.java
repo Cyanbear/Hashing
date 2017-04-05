@@ -12,6 +12,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * One example of the usefulness of hash tables.
+ * 
+ * @author Jaden Simon and Yingqi Song
+ */
 public class Crack 
 {
 	/**
@@ -142,8 +147,8 @@ public class Crack
     	ArrayList<String> successes = new ArrayList<>();
     	
     	for (String word : dictionary)
-    		if (hashes.contains(word.hashCode()))
-    			successes.add(word + " : " + word.hashCode());
+    		if (hashes.contains(stringToMD5Hash(word)))
+    			successes.add(word + " : " + stringToMD5Hash(word));
     	
     	return successes;
     }
@@ -191,7 +196,7 @@ public class Crack
                                             public void run()
                                             {
                                                     System.out.println("working on permutation " + temp);
-                                                    brute_force_attack(hashes, successes.get(temp), new StringBuilder("" + (char) ('a' + temp + 1)),
+                                                    brute_force_attack(hashes, successes.get(temp), new StringBuilder("" + (char) ('a' + temp)),
                                                                     1, max_permutation_length);
                                             }
                                     });;
@@ -216,10 +221,15 @@ public class Crack
     
     public static void main(String[] args)
     {
-    	HashSet<String> hashes = read_file_into_hash_set("Resources\\a_few_hashes");
-    	
-    	ArrayList<ArrayList<String>> pass = multi_thread_brute_force_attack(5, hashes);
+    	HashSet<String> hashes = read_file_into_hash_set("Resources\\hashwords_long");
+    	ArrayList<String> dictionary = read_file_into_array("Resources\\common_passwords_cain");
+    	    	
+    	ArrayList<ArrayList<String>> pass = multi_thread_brute_force_attack(6, hashes);
 
     	System.out.println(pass);
+    	
+    	ArrayList<String> passwords = dictionary_attack(dictionary, hashes);
+    	
+    	System.out.println(passwords);
     }
 }

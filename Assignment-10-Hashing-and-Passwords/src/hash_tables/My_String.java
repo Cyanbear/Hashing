@@ -22,28 +22,35 @@ public class My_String implements Comparable<My_String>
   }
 
   /**
-   * This our own the hash code of the my_string .
+   * Bad hash method.
    * 
-   * s.charAt(0) * 31n-1 + s.charAt(1) * 31n-2 + ... + s.charAt(n-1)
-   * @return total number of the function 
+   * @return hash of the String
+   */
+  public int naiveHashCode()
+  {
+	  int total = 0;
+	  
+	  for (int index = 0; index < value.length(); index++)
+		  total += (int)this.value.charAt(index);
+	  
+	  return total;
+  }
+  
+  /**
+   * This our own the hash code method.
+   * 
+   * @return hash of the String
    */
   public int hashCode()
   {
 	  double total = 0;
 	  
 	  for (int index = 0; index < value.length(); index++)
-			  total += (int)this.value.charAt(index) * Math.pow(31, index);	 
+			  total += (int)this.value.charAt(index) * Math.pow(27, index);	 
 
       return (int) (total % Integer.MAX_VALUE);
   }
  
-
-// @Override
-//  public int hashCode()
-//  {
-//      return this.value.hashCode();
-//  }
-//  
   /**
    * string value equality
    */
