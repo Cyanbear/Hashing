@@ -75,9 +75,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 				if (pair == null) 			  		  return -1;
 				else if(pair.key.equals(key))		  return probedIndex;
 			}
-			
-			// Timeout check
-			if (localCollisionCount > capacity * 100) return -1;
 		}
 	}
 	
