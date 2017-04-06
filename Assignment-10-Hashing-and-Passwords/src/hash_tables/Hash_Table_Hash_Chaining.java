@@ -38,7 +38,6 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	{
 		for (Pair<KeyType, ValueType> pair : chain)
 		{
-			hitCount++;
 			collisionCount++;
 			
 			if (pair.key.equals(key)) return pair;
@@ -55,7 +54,6 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		functionTime += (System.nanoTime() - startTime);
 		
 		// Index the table
-		hitCount++;
 		LinkedList<Pair<KeyType, ValueType>> chain = table.get(index);
 		ValueType returnValue = null;
 
@@ -81,7 +79,6 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 			resize(capacity * 2);
 		
 		// Insert key/value
-		hitCount++;
 		int index = key.hashCode() % capacity;
 		functionTime += (System.nanoTime() - startTime);
 			
@@ -133,7 +130,8 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 			for (LinkedList<Pair<KeyType, ValueType>> chain : oldTable)
 				if (chain != null)
 					for (Pair<KeyType, ValueType> pair : chain)
-						if (pair != null) insert(pair.key, pair.value);			
+						if (pair != null) 
+							this.insert(pair.key, pair.value);			
 		}
 	}
 	

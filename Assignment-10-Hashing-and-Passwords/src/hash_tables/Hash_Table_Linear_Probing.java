@@ -20,7 +20,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	protected boolean								resizeable;     /** whether the table can be resized or not */
 	
 	// A list of statistics (self-explanatory)
-	protected int									hitCount;       
 	protected int									insertionCount;
 	protected int									collisionCount;
 	protected int									findCount;
@@ -63,7 +62,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		int localCollisionCount = 1;
 		while (true)
 		{
-			hitCount++;
 			collisionCount++;
 			
 			int probedIndex = nextProbeIndex(index, localCollisionCount++);
@@ -71,14 +69,15 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			
 			if (isInsert)
 			{
-				if (pair == null) 			  return probedIndex;
+				if (pair == null) 					  return probedIndex;
 			} else
 			{
-				if (pair == null) 			  return -1;
-				else if(pair.key.equals(key)) return probedIndex;
+				if (pair == null) 			  		  return -1;
+				else if(pair.key.equals(key))		  return probedIndex;
 			}
 			
-			if (probedIndex == index) 		  return -1;
+			// Timeout check
+			if (localCollisionCount > capacity * 100) return -1;
 		}
 	}
 	
@@ -104,7 +103,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			resize(capacity * 2);
 		
 		// Insert key/value
-		hitCount++;
 		int index = key.hashCode() % capacity;
 		functionTime += (System.nanoTime() - startTime);
 			
@@ -152,7 +150,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		functionTime += (System.nanoTime() - startTime);
 		
 		// Index the table
-		hitCount++;
 		Pair<KeyType, ValueType> pair = table.get(index);
 		ValueType returnValue = null;
 
@@ -213,7 +210,9 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 		
 		ArrayList<Double> stats = new ArrayList<>();
 		
-		stats.add(hitCount / (double)(insertionCount + findCount));
+		int operationCount = insertionCount + findCount;
+		
+		stats.add((collisionCount + operationCount) / (double)(operationCount));
 		stats.add((double) num_of_entries);
 		stats.add((double) capacity);
 		
@@ -255,7 +254,6 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public void reset_stats()
 	{
-		hitCount       = 0;
 		insertionCount = 0;
 		collisionCount = 0;
 		findCount 	   = 0;

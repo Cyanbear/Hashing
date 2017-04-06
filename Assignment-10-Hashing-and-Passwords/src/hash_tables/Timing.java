@@ -17,10 +17,11 @@ public class Timing
 	 * Reads the Names file into the Hash_Map.
 	 * 
 	 * @param hashTable - table to read into
+	 * @param maxNames  - max names to read
 	 * 
 	 * @return the keys used
 	 */
-	private static ArrayList<My_String> readNamesFile(Hash_Map<My_String, Integer> hashTable)
+	private static ArrayList<My_String> readNamesFile(Hash_Map<My_String, Integer> hashTable, int maxNames)
 	{
     	try
     	{
@@ -29,7 +30,7 @@ public class Timing
     		
     		reader.readLine(); // Junk line
     		
-    		while(reader.ready())
+    		while(reader.ready() && hashTable.size() < maxNames)
     		{
     			String line = reader.readLine();
     			String[] parts = line.split(" ");
@@ -85,7 +86,7 @@ public class Timing
 			}
 			
 			// Begin testing
-			ArrayList<My_String> keys = readNamesFile(testTable);
+			ArrayList<My_String> keys = readNamesFile(testTable, 1000);
 
 			if (spreadSheetMode)
 			{
@@ -124,5 +125,10 @@ public class Timing
 		
 		System.out.println("RUNNING HASH CHAIN TEST");
 		runTest(new Hash_Table_Hash_Chaining<My_String, Integer>(0), 100, 1000, 10, SPREAD_SHEET_MODE);
+		
+		Hash_Table_Quadratic_Probing<My_String, Integer> testTable = new Hash_Table_Quadratic_Probing<>(79);
+		testTable.set_resize_allowable(false);
+		readNamesFile(testTable, 79);
+		testTable.print_stats();
 	}
 }

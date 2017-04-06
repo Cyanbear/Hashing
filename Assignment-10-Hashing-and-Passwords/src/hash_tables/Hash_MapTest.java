@@ -129,9 +129,7 @@ public class Hash_MapTest {
 		for(int i = 0 ;i<102;i++){
 			testTable1.insert(102 - i, i);
 		}
-		
-		System.out.println(testTable1.capacity());
-		
+				
 		assertEquals(102, testTable1.size());
 
 	}
