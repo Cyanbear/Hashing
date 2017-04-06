@@ -12,6 +12,7 @@ package hash_tables;
 public class My_String implements Comparable<My_String> 
 {
   public String value;
+  public static boolean useBadHashMethod = false; /** forces all My_String objects to use the bad hash */
   
   /**
    * @param name
@@ -43,6 +44,9 @@ public class My_String implements Comparable<My_String>
    */
   public int hashCode()
   {
+	  if (useBadHashMethod)
+		  return naiveHashCode();
+	  
 	  double total = 0;
 	  
 	  for (int index = 0; index < value.length(); index++)
