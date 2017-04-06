@@ -61,7 +61,7 @@ public class Timing
 	 * @param stepSize        - capacity step size
 	 * @param spreadSheetMode - enables/disables simple data printing
 	 */
-	private static void runTest(Hash_Map<My_String, Integer> testTable, int startCap, 
+	private static void runTest(String tableName, int startCap, 
 								int endCap, int stepSize, boolean spreadSheetMode)
 	{	
 		if (spreadSheetMode)
@@ -69,20 +69,22 @@ public class Timing
 		
 		for (int cap = startCap; cap <= endCap; cap += stepSize)
 		{
+			Hash_Map<My_String, Integer> testTable = null;
+			
 			// Initialize the table based on the parameter type.
-			if (testTable instanceof Hash_Table_Linear_Probing)
+			switch(tableName)
 			{
-				testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
-				testTable.set_resize_allowable(false);
-			}
-			else if (testTable instanceof Hash_Table_Quadratic_Probing)
-			{
-				testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
-				testTable.set_resize_allowable(false);
-			}
-			else if (testTable instanceof Hash_Table_Hash_Chaining)
-			{
-				testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
+			case "Linear" 	 : testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
+							   testTable.set_resize_allowable(false);
+							   break;
+			case "Quadratic" : testTable = new Hash_Table_Quadratic_Probing<My_String, Integer>(cap);
+							   testTable.set_resize_allowable(false);
+							   break;
+			case "Chaining"  : testTable = new Hash_Table_Hash_Chaining<My_String, Integer>(cap);
+							   testTable.set_resize_allowable(true);
+							   break;
+			default          : System.out.println("ERROR!");
+							   System.exit(1);
 			}
 			
 			// Begin testing
@@ -116,15 +118,15 @@ public class Timing
 		// Probing tests
 	
 		System.out.println("RUNNING LINEAR TEST");
-		runTest(new Hash_Table_Linear_Probing<My_String, Integer>(0), 1000, 5000, 200, SPREAD_SHEET_MODE);
+		runTest("Linear", 1000, 5000, 200, SPREAD_SHEET_MODE);
 		
 		System.out.println("RUNNING QUADRATIC TEST");
-		runTest(new Hash_Table_Quadratic_Probing<My_String, Integer>(0), 1000, 5000, 200, SPREAD_SHEET_MODE);
+		runTest("Quadratic", 1000, 5000, 200, SPREAD_SHEET_MODE);
 		
 		// Hash_Chaining test
 		
 		System.out.println("RUNNING HASH CHAIN TEST");
-		runTest(new Hash_Table_Hash_Chaining<My_String, Integer>(0), 100, 1000, 10, SPREAD_SHEET_MODE);
+		runTest("Chaining", 100, 1000, 10, SPREAD_SHEET_MODE);
 		
 		Hash_Table_Quadratic_Probing<My_String, Integer> testTable = new Hash_Table_Quadratic_Probing<>(79);
 		testTable.set_resize_allowable(false);

@@ -19,6 +19,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		super(initial_capacity);
 	}
 
+	@Override
 	protected void init_table()
 	{
 		table = new ArrayList<LinkedList<Pair<KeyType, ValueType>>>(capacity);
@@ -46,6 +47,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		return null;
 	}
 	
+	@Override
 	public ValueType find( KeyType key )
 	{
 		double startTime = System.nanoTime(); // Used for timing
@@ -70,12 +72,13 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		return returnValue;
 	}
 	
+	@Override
 	public void insert( KeyType key, ValueType value )
-	{
+	{		
 		double startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize
-		if (num_of_entries > 0.5 * capacity && resizeable)
+		if (chainCount > 0.5 * capacity && resizeable)
 			resize(capacity * 2);
 		
 		// Insert key/value
@@ -106,6 +109,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 		insertionTime += (System.nanoTime() - startTime);
 	}
 	
+	@Override
 	public void resize( int new_size )
 	{
 		if (new_size > capacity)
@@ -131,10 +135,11 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 				if (chain != null)
 					for (Pair<KeyType, ValueType> pair : chain)
 						if (pair != null) 
-							this.insert(pair.key, pair.value);			
+							insert(pair.key, pair.value);			
 		}
 	}
 	
+	@Override
 	public void clear()
 	{
 		super.clear();
@@ -145,6 +150,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	 * Fill in calculations to show some of the stats about the hash table
 	 * Extra info provided for this version.
 	 */
+	@Override
 	public String toString()
 	{
 		String result = new String();
