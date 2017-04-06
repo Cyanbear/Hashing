@@ -126,6 +126,8 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 			this.table = newTable;
 			
 			// Move the previous items to new one
+			num_of_entries = 0;
+			chainCount = 0;
 			reset_stats();
 			
 			for (LinkedList<Pair<KeyType, ValueType>> chain : oldTable)

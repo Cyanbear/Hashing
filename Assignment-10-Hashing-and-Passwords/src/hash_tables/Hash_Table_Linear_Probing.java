@@ -309,6 +309,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			this.table = newTable;
 			
 			// Move the previous items to new one
+			num_of_entries = 0;
 			reset_stats();
 			
 			for (Pair<KeyType, ValueType> pair : oldTable)
