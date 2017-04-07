@@ -12,6 +12,7 @@ package hash_tables;
 public class My_String implements Comparable<My_String> 
 {
   public String value;
+  public int preComputedHash = -1;                /** precomputing hashes is way faster! */
   public static boolean useBadHashMethod = false; /** forces all My_String objects to use the bad hash */
   
   /**
@@ -20,6 +21,7 @@ public class My_String implements Comparable<My_String>
   public My_String(String name)
   {
     this.value = name;
+    this.preComputedHash = hashCode();
   }
 
   /**
@@ -28,13 +30,8 @@ public class My_String implements Comparable<My_String>
    * @return hash of the String
    */
   public int naiveHashCode()
-  {
-	  int total = 0;
-	  
-	  for (int index = 0; index < value.length(); index++)
-		  total += (int)this.value.charAt(index);
-	  
-	  return total;
+  {  
+	  return (int)value.charAt(0);
   }
   
   /**
@@ -44,6 +41,9 @@ public class My_String implements Comparable<My_String>
    */
   public int hashCode()
   {
+	  if (preComputedHash != -1)
+		  return preComputedHash;
+		  
 	  if (useBadHashMethod)
 		  return naiveHashCode();
 	  

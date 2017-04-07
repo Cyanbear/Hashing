@@ -5,18 +5,21 @@ import java.util.LinkedList;
 
 /**
  * An extension of Hash_Table_Linear_Probing that uses Chaining for collisions.
+ * Unlike probing, a chaining hash table expands based on the average chain length.
+ * For this implementation, 5 is the maximum average chain length.
  * 
  * @author Jaden Simon and Yingqi Song
  */
 
 public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Linear_Probing<KeyType, ValueType> 
 {
-	protected ArrayList<LinkedList<Pair<KeyType, ValueType>>>		table;		/** uses a chain of pairs */
+	protected ArrayList<LinkedList<Pair<KeyType, ValueType>>>		table;		/** uses a LinkedList of Pairs */
 	protected int													chainCount; /** keeps track of how many chains there are */
 	
 	public Hash_Table_Hash_Chaining(int initial_capacity) 
 	{
 		super(initial_capacity);
+		this.chainCount = 0;
 	}
 
 	@Override
@@ -38,10 +41,10 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	private Pair<KeyType, ValueType> find(LinkedList<Pair<KeyType, ValueType>> chain, KeyType key)
 	{
 		for (Pair<KeyType, ValueType> pair : chain)
-		{
-			collisionCount++;
-			
+		{			
 			if (pair.key.equals(key)) return pair;
+			
+			collisionCount++;
 		}
 		
 		return null;
@@ -52,8 +55,9 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	{
 		double startTime = System.nanoTime(); // Used for timing
 		
+		long hashTime = System.nanoTime();
 		int index = key.hashCode() % capacity;
-		functionTime += (System.nanoTime() - startTime);
+		functionTime += (System.nanoTime() - hashTime);
 		
 		// Index the table
 		LinkedList<Pair<KeyType, ValueType>> chain = table.get(index);
@@ -75,16 +79,17 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	@Override
 	public void insert( KeyType key, ValueType value )
 	{		
-		double startTime = System.nanoTime(); // Used for timing
+		long startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize
-		if (chainCount > 0.5 * capacity && resizeable)
+		if (num_of_entries > 5.0 * chainCount && resizeable)
 			resize(capacity * 2);
 		
-		// Insert key/value
+		long hashTime = System.nanoTime();
 		int index = key.hashCode() % capacity;
-		functionTime += (System.nanoTime() - startTime);
+		functionTime += (System.nanoTime() - hashTime);
 			
+		// Insert key/value
 		LinkedList<Pair<KeyType, ValueType>> chain = table.get(index);
 		if (chain != null) // Search the chain for duplicate
 		{	
@@ -122,8 +127,7 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 			for (int index = 0; index < new_size; index++)
 				newTable.add(null);
 
-			capacity = new_size;
-			
+			this.capacity = new_size;
 			this.table = newTable;
 			
 			// Move the previous items to new one
@@ -148,7 +152,8 @@ public class Hash_Table_Hash_Chaining<KeyType, ValueType> extends Hash_Table_Lin
 	
 	/**
 	 * Fill in calculations to show some of the stats about the hash table
-	 * Extra info provided for this version.
+	 * The chaining version includes average chain length, and considers percent filled
+	 * to be the ratio of chainCount and capacity.
 	 */
 	@Override
 	public String toString()

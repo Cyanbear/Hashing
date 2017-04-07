@@ -19,14 +19,14 @@ public class Timing
 	 * @param hashTable - table to read into
 	 * @param maxNames  - max names to read
 	 * 
-	 * @return the keys used
+	 * @return the key/value pairs used
 	 */
-	private static ArrayList<My_String> readNamesFile(Hash_Map<My_String, Integer> hashTable, int maxNames)
+	public static ArrayList<Pair<My_String, Integer>> readNamesFile(Hash_Map<My_String, Integer> hashTable, int maxNames)
 	{
     	try
     	{
     		BufferedReader reader = new BufferedReader(new FileReader("Resources/names"));
-    		ArrayList<My_String> keys = new ArrayList<>();
+    		 ArrayList<Pair<My_String, Integer>> pairs = new ArrayList<>();
     		
     		reader.readLine(); // Junk line
     		
@@ -38,12 +38,12 @@ public class Timing
     			Integer age = Integer.parseInt(parts[parts.length - 1]);
     			
     			hashTable.insert(name, age);
-    			keys.add(name);
+    			pairs.add(new Pair<My_String, Integer>(name, age));
     		}
     		    		
     		reader.close();
     		
-    		return keys;
+    		return pairs;
     	} catch(IOException error)
     	{
     		error.printStackTrace();
@@ -60,12 +60,13 @@ public class Timing
 	 * @param endCap          - end capacity
 	 * @param stepSize        - capacity step size
 	 * @param spreadSheetMode - enables/disables simple data printing
+	 * @param resizeable      - enables/disables resizeable tables
 	 */
-	private static void runTest(String tableName, int startCap, 
-								int endCap, int stepSize, boolean spreadSheetMode)
+	public static void runTest(String tableName, int startCap, int endCap, int stepSize, 
+								boolean spreadSheetMode, boolean resizeable)
 	{	
 		if (spreadSheetMode)
-			System.out.println("Capacity\tInsertion Time\tFind Time");
+			System.out.println("Capacity\tInsertion Time\tFind Time\tHash Time");
 		
 		for (int cap = startCap; cap <= endCap; cap += stepSize)
 		{
@@ -75,37 +76,29 @@ public class Timing
 			switch(tableName)
 			{
 			case "Linear" 	 : testTable = new Hash_Table_Linear_Probing<My_String, Integer>(cap);
-							   testTable.set_resize_allowable(false);
 							   break;
 			case "Quadratic" : testTable = new Hash_Table_Quadratic_Probing<My_String, Integer>(cap);
-							   testTable.set_resize_allowable(false);
 							   break;
 			case "Chaining"  : testTable = new Hash_Table_Hash_Chaining<My_String, Integer>(cap);
-							   testTable.set_resize_allowable(true);
 							   break;
 			default          : System.out.println("ERROR!");
 							   System.exit(1);
 			}
 			
+			testTable.set_resize_allowable(resizeable);
+			
 			// Begin testing
-			ArrayList<My_String> keys = readNamesFile(testTable, 1000);
+			 ArrayList<Pair<My_String, Integer>> pairs = readNamesFile(testTable, 1000);
 
+			// Find all the keys in the table
+			for (Pair<My_String, Integer> pair : pairs)
+				testTable.find(pair.key);
+			
 			if (spreadSheetMode)
-			{
-				for (My_String key : keys)
-					testTable.find(key);
-				
 				testTable.print_stats_spreadhseet();
-			} else 
+			else 
 			{
 				System.out.println("Testing capacity " + cap + "\n");
-				
-				testTable.print_stats();
-				testTable.reset_stats();
-	
-				for (My_String key : keys)
-					testTable.find(key);
-	
 				testTable.print_stats();
 			}
 		}	
@@ -113,22 +106,58 @@ public class Timing
 	
 	public static void main(String[] args)
 	{
-		boolean SPREAD_SHEET_MODE = true; // Outputs only the necessary data
+		boolean SPREAD_SHEET_MODE  = true;   // Outputs only the necessary data
+		My_String.useBadHashMethod = false;   // Change this to use a bad Hash method
+			
+		// No resize
 		
-		// Probing tests
-	
+		System.out.println("RUNNING TESTS WITH NO RESIZING\n");
+		
 		System.out.println("RUNNING LINEAR TEST");
-		runTest("Linear", 1000, 5000, 200, SPREAD_SHEET_MODE);
+		runTest("Linear", 1000, 5000, 200, SPREAD_SHEET_MODE, false);
 		
 		System.out.println("RUNNING QUADRATIC TEST");
-		runTest("Quadratic", 1000, 5000, 200, SPREAD_SHEET_MODE);
-		
-		// Hash_Chaining test
+		runTest("Quadratic", 1000, 5000, 200, SPREAD_SHEET_MODE, false);
 		
 		System.out.println("RUNNING HASH CHAIN TEST");
-		runTest("Chaining", 100, 1000, 10, SPREAD_SHEET_MODE);
+		runTest("Chaining", 1000, 5000, 200, SPREAD_SHEET_MODE, false);
 		
-		Hash_Table_Quadratic_Probing<My_String, Integer> testTable = new Hash_Table_Quadratic_Probing<>(79);
+		// Resizing
+		
+		System.out.println("RUNNING TESTS WITH RESIZING\n");
+		
+		System.out.println("RUNNING LINEAR TEST");
+		runTest("Linear", 1000, 5000, 200, SPREAD_SHEET_MODE, true);
+		
+		System.out.println("RUNNING QUADRATIC TEST");
+		runTest("Quadratic", 1000, 5000, 200, SPREAD_SHEET_MODE, true);
+		
+		System.out.println("RUNNING HASH CHAIN TEST");
+		runTest("Chaining", 1000, 5000, 200, SPREAD_SHEET_MODE, true);
+		
+		// Just hash chain testing
+		
+		System.out.println("RUNNING TESTS WITH RESIZING AND CAPACITY < ELEMENTS (HASH_CHAINING ONLY!)\n");
+		
+		System.out.println("RUNNING HASH CHAIN TEST");
+		runTest("Chaining", 100, 1000, 10, SPREAD_SHEET_MODE, true);
+		
+		// Analysis test
+		
+		System.out.println("TESTING EACH IMPLEMENTATION AT 79 CAPACITY WITH NO RESIZE");
+		System.out.println("RESULTS IN THE ORDER LINEAR -> QUADRATIC -> CHAINING\n");		
+		
+		Hash_Map<My_String, Integer> testTable = new Hash_Table_Linear_Probing<>(79);
+		testTable.set_resize_allowable(false);
+		readNamesFile(testTable, 79);
+		testTable.print_stats();
+		
+		testTable = new Hash_Table_Quadratic_Probing<>(79);
+		testTable.set_resize_allowable(false);
+		readNamesFile(testTable, 79);
+		testTable.print_stats();
+		
+		testTable = new Hash_Table_Hash_Chaining<>(79);
 		testTable.set_resize_allowable(false);
 		readNamesFile(testTable, 79);
 		testTable.print_stats();

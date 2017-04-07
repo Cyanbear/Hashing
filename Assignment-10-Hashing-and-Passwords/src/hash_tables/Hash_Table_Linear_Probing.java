@@ -53,29 +53,34 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 * 
 	 * @param index    - index to start at
 	 * @param key      - key to check with
-	 * @param isInsert - whether this is an insert or find probe
+	 * @param isInsert - whether this is an insert or a find probe
 	 * 
 	 * @return index of a valid spot
 	 */
 	private int probe(int index, KeyType key, boolean isInsert)
 	{				
 		int localCollisionCount = 1;
+		int probedIndex = nextProbeIndex(index, localCollisionCount);
+		
+		// Loop until we find what we're looking for
 		while (true)
-		{
-			collisionCount++;
-			
-			int probedIndex = nextProbeIndex(index, localCollisionCount++);
+		{			
 			Pair<KeyType, ValueType> pair = table.get(probedIndex);
 			
-			if (isInsert)
+			if (pair == null) // Empty spot
 			{
-				if (pair == null) 					  return probedIndex;
-			} else
-			{
-				if (pair == null) 			  		  return -1;
-				else if(pair.key.equals(key))		  return probedIndex;
-			}
+				if (!isInsert)
+					probedIndex = -1; // Didn't find anything
+				
+				break;
+			} else if (pair.key.equals(key)) break; // Found matching key
+			
+			probedIndex = nextProbeIndex(index, ++localCollisionCount);
 		}
+		
+		collisionCount += localCollisionCount; // Add to the collision counter
+		
+		return probedIndex;
 	}
 	
 	/**
@@ -91,26 +96,23 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	 */
 	public void insert( KeyType key, ValueType value )
 	{		
-		if (num_of_entries == capacity) return;
+		if (num_of_entries == capacity) return; // Prevent insert from adding beyond the capacity
 		
-		double startTime = System.nanoTime(); // Used for timing
+		long startTime = System.nanoTime(); // Used for timing
 		
 		// Check for resize
 		if (num_of_entries > capacity / 2.0 && resizeable)
 			resize(capacity * 2);
 		
 		// Insert key/value
+		long hashTime = System.nanoTime();
 		int index = key.hashCode() % capacity;
-		functionTime += (System.nanoTime() - startTime);
+		functionTime += (System.nanoTime() - hashTime);
 			
 		Pair<KeyType, ValueType> pair = table.get(index);
 		if (pair != null) 
 		{	
-			if (pair.key.equals(key)) 
-			{
-				collisionCount++;
-				table.get(index).value = value;
-			}
+			if (pair.key.equals(key)) table.get(index).value = value;
 			else // Collision found
 			{
 				int probeIndex = probe(index, key, true);
@@ -143,8 +145,9 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	{
 		double startTime = System.nanoTime(); // Used for timing
 		
+		long hashTime = System.nanoTime();
 		int index = key.hashCode() % capacity;
-		functionTime += (System.nanoTime() - startTime);
+		functionTime += (System.nanoTime() - hashTime);
 		
 		// Index the table
 		Pair<KeyType, ValueType> pair = table.get(index);
@@ -194,22 +197,24 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	{
 		Long   avgInsertionTime = (insertionCount == 0) ? 0 : insertionTime / insertionCount;
 		Long   avgFindTime 	    = (findCount == 0) ? 0 : findTime / findCount;
+		Long   avgHashTime 	    = (findCount == 0 && insertionCount == 0) ? 0 : functionTime / (findCount + insertionCount);
 		
-		System.out.printf("%10d\t%10d\t%10d\n", capacity, avgInsertionTime, avgFindTime);
+		System.out.printf("%10d\t%10d\t%10d\t%10d\n", capacity, avgInsertionTime, avgFindTime, avgHashTime);
 	}
 
 	/**
-	 * 
+	 * Prints out itself and returns:
+	 * 		1) collisions per operations
+	 * 		2) number of elements
+	 * 		3) capacity
 	 */
 	public ArrayList<Double> print_stats()
 	{
 		System.out.println(this);
 		
 		ArrayList<Double> stats = new ArrayList<>();
-		
-		int operationCount = insertionCount + findCount;
-		
-		stats.add((collisionCount + operationCount) / (double)(operationCount));
+
+		stats.add((collisionCount) / (double)(insertionCount + findCount));
 		stats.add((double) num_of_entries);
 		stats.add((double) capacity);
 		
@@ -217,13 +222,13 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 	}
 
 	/**
-	 * Fill in calculations to show some of the stats about the hash table
+	 * Fill in calculations to show some of the statistics about the hash table
 	 */
 	public String toString()
 	{
 		String result = new String();
 		
-		// Calculate stats
+		// Calculate statistics
 		Long   avgHashTime 	    = (findCount == 0 && insertionCount == 0) ? 0 : functionTime / (findCount + insertionCount);
 		Long   avgInsertionTime = (insertionCount == 0) ? 0 : insertionTime / insertionCount;
 		Long   avgFindTime 	    = (findCount == 0) ? 0 : findTime / findCount;
@@ -299,8 +304,7 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			for (int index = 0; index < new_size; index++)
 				newTable.add(null);
 
-			capacity = new_size;
-			
+			this.capacity = new_size;
 			this.table = newTable;
 			
 			// Move the previous items to new one
@@ -308,20 +312,8 @@ public class Hash_Table_Linear_Probing<KeyType, ValueType> implements Hash_Map<K
 			reset_stats();
 			
 			for (Pair<KeyType, ValueType> pair : oldTable)
-				if (pair != null) insert(pair.key, pair.value);
+				if (pair != null) 
+					insert(pair.key, pair.value);
 		}
-	}
-	
-	public static void main(String[] args)
-	{
-		Hash_Map<String, String> table = new Hash_Table_Linear_Probing<>(100);
-		
-		for (int i = 0; i < 1000; i++)
-			table.insert("" + (char)(i % 10 + 30) + (char)(i % 20 + 30), "x");
-		
-		for (int i = 0; i < 1000; i++)
-			table.find("" + (char)(i % 10 + 30) + (char)(i % 20 + 30));
-				
-		System.out.println(table);
 	}
 }

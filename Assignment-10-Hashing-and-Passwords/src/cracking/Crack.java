@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Crack 
 {
+	public static boolean I_DID_NOT_STUDY_ALGORITHMS = false;
+	
 	/**
 	 * @param string - string to use
 	 * @return MD5 hash of the string
@@ -170,9 +172,6 @@ public class Crack
             long start_time = System.nanoTime();
             System.out.println("starting computation");
 
-            ArrayList<Thread> threads = new ArrayList<>();
-
-            int count = 0;
             int AVAILABLE_THREADS = 8;
             
                             
@@ -221,15 +220,22 @@ public class Crack
     
     public static void main(String[] args)
     {
-    	HashSet<String> hashes = read_file_into_hash_set("Resources\\hashwords_long");
+    	Collection<String> hashes;
+    	
+    	if (I_DID_NOT_STUDY_ALGORITHMS)
+    		hashes = read_file_into_array("Resources\\hashwords_long");
+    	else
+    		hashes = read_file_into_hash_set("Resources\\hashwords_long");
+    
     	ArrayList<String> dictionary = read_file_into_array("Resources\\common_passwords_cain");
     	    	
-    	ArrayList<ArrayList<String>> pass = multi_thread_brute_force_attack(6, hashes);
-
-    	System.out.println(pass);
+    	System.out.println("Brute forcing hashwords_long with a depth of 4: ");
+    	System.out.println(brute_force_attack(hashes, 4));
     	
-    	ArrayList<String> passwords = dictionary_attack(dictionary, hashes);
+    	System.out.println("Brute forcing hashwords_long with a depth of 4 with multiple threads: ");
+    	multi_thread_brute_force_attack(4, hashes);
     	
-    	System.out.println(passwords);
+    	System.out.println("Dictionary attack on hashwords_long using common_passwords_cain: ");
+    	System.out.println(dictionary_attack(dictionary, hashes));
     }
 }
